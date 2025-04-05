@@ -30,6 +30,19 @@ export function formatPercentage(value: number): string {
   return formatter.format(value / 100)
 }
 
+// Add format percent function for direct percentage formatting without dividing by 100
+export function formatPercent(value: number): string {
+  if (value === undefined || value === null) return "N/A"
+
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "percent",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+
+  return formatter.format(value)
+}
+
 export function formatNumber(value: number): string {
   if (value === undefined || value === null) return "N/A"
 

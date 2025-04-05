@@ -4,6 +4,65 @@ import { logError } from "../utils"
 
 const API_BASE_URL = "https://finnhub.io/api/v1"
 
+// Interfaces para las respuestas de la API de Finnhub
+interface FinnhubQuoteResponse {
+  c: number;   // Current price
+  d: number;   // Change
+  dp: number;  // Percent change
+  h: number;   // High price of the day
+  l: number;   // Low price of the day
+  o: number;   // Open price of the day
+  pc: number;  // Previous close price
+  v: number;   // Volume
+}
+
+interface FinnhubProfileResponse {
+  country: string;
+  currency: string;
+  exchange: string;
+  ipo: string;
+  marketCapitalization: number;
+  name: string;
+  phone: string;
+  shareOutstanding: number;
+  ticker: string;
+  weburl: string;
+  logo: string;
+  finnhubIndustry: string;
+  description: string;
+}
+
+interface FinnhubMetricsResponse {
+  metric: {
+    peBasicExcl: number;
+    epsBasicExcl: number;
+    beta: number;
+    "52WeekHigh": number;
+    "52WeekLow": number;
+    dividendYieldIndicatedAnnual: number;
+    dividendPerShareAnnual: number;
+    evToEbitda: number;
+    netProfitMargin: number;
+    operatingMargin: number;
+    roa: number;
+    roe: number;
+    revenuePerShare: number;
+    pbQuarterly: number;
+    psQuarterly: number;
+    [key: string]: number | undefined;
+  };
+}
+
+interface FinnhubCandleResponse {
+  c: number[];  // Close prices
+  h: number[];  // High prices
+  l: number[];  // Low prices
+  o: number[];  // Open prices
+  s: string;    // Status ("ok" or "no_data")
+  t: number[];  // Timestamps
+  v: number[];  // Volumes
+}
+
 // Generic endpoint fetcher
 export async function fetchEndpoint<T>(endpoint: string, params: Record<string, any>): Promise<T> {
   const apiKey = process.env.FINNHUB_API_KEY
@@ -55,14 +114,14 @@ export async function fetchEndpoint<T>(endpoint: string, params: Record<string, 
 // Get stock quote
 export async function getStockQuote(symbol: string): Promise<StockQuote> {
   try {
-    const data = await fetchEndpoint("quote", { symbol })
+    const data = await fetchEndpoint<FinnhubQuoteResponse>("quote", { symbol })
 
     if (!data || data.c === undefined) {
       throw new Error(`No quote data found for symbol: ${symbol}`)
     }
 
     // Get company profile to get the name
-    const profile = await fetchEndpoint("stock/profile2", { symbol })
+    const profile = await fetchEndpoint<FinnhubProfileResponse>("stock/profile2", { symbol })
 
     return {
       symbol,
@@ -85,8 +144,8 @@ export async function getStockOverview(symbol: string): Promise<StockOverview> {
   try {
     // Finnhub requires multiple API calls to get all the data we need
     const [profile, metrics] = await Promise.all([
-      fetchEndpoint("stock/profile2", { symbol }),
-      fetchEndpoint("stock/metric", { symbol, metric: "all" }),
+      fetchEndpoint<FinnhubProfileResponse>("stock/profile2", { symbol }),
+      fetchEndpoint<FinnhubMetricsResponse>("stock/metric", { symbol, metric: "all" }),
     ])
 
     if (!profile || !profile.name) {
@@ -134,7 +193,7 @@ export async function getTimeSeries(
   to: number,
 ): Promise<TimeSeriesData[]> {
   try {
-    const data = await fetchEndpoint("stock/candle", {
+    const data = await fetchEndpoint<FinnhubCandleResponse>("stock/candle", {
       symbol,
       resolution,
       from,

@@ -1,52 +1,55 @@
 // Market data types
 
 export interface StockQuote {
-  symbol: string
   price: number
   change: number
   changePercent: number
-  volume: number
-  previousClose?: number
+  symbol?: string
+  volume?: number
   latestTradingDay?: string
-  currency: string
-  error?: boolean
+  previousClose?: number
+  currency?: string
 }
 
 export interface StockOverview {
   symbol: string
   name: string
-  description: string
-  exchange: string
+  price: number
+  change: number
+  changePercent: number
   currency: string
-  country: string
-  sector: string
-  industry: string
-  marketCap: number
-  pe: number
-  eps: number
-  beta: number
-  high52Week: number
-  low52Week: number
-  dividendYield: number
-  dividendPerShare: number
-  evToEbitda: number
-  profitMargin: number
-  operatingMargin: number
-  returnOnAssets: number
-  returnOnEquity: number
-  revenuePerShare: number
-  priceToBook: number
-  priceToSales: number
-  website: string
+  marketCap?: number
+  pe?: number
+  eps?: number
+  high52Week?: number
+  low52Week?: number
+  avgVolume?: number
+  dividend?: number
+  dividendYield?: number
+  beta?: number
+  description?: string
+  industry?: string
+  sector?: string
+  country?: string
+  exchange?: string
+  website?: string
+  profitMargin?: number
+  operatingMargin?: number
+  returnOnEquity?: number
+  returnOnAssets?: number
+  priceToBook?: number
+  priceToSales?: number
+  evToEbitda?: number
+  revenuePerShare?: number
+  volume?: number
+  previousClose?: number
+  latestTradingDay?: string
+  isMockData?: boolean
 }
 
 export interface TimeSeriesData {
   date: string
-  open: number
-  high: number
-  low: number
-  close: number
-  volume: number
+  value: number
 }
 
 export interface MarketIndex {
@@ -56,7 +59,6 @@ export interface MarketIndex {
   change: number
   changePercent: number
   currency: string
-  error?: boolean
 }
 
 export interface AssetComparison {
@@ -82,6 +84,22 @@ export interface MetricHistorical {
 
 export interface MetricTimeSeries {
   metric: string
-  data: MetricHistorical[]
+  data: {
+    date: string
+    value: number
+  }[]
+}
+
+export interface FetchConfig {
+  primaryProvider?: "alpha-vantage" | "finnhub"
+  fallbackProvider?: "alpha-vantage" | "finnhub"
+  cacheDuration?: number // in seconds
+}
+
+export interface ApiResponse<T> {
+  data?: T
+  error?: string
+  cached?: boolean
+  timestamp?: number
 }
 

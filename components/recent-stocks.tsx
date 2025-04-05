@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { fetchStockTimeSeries } from "@/lib/alpha-vantage-client"
 import StockChart from "./stock-chart"
+import { AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 const POPULAR_STOCKS = ["AAPL", "MSFT", "GOOGL", "AMZN"]
 
@@ -12,16 +14,27 @@ export default function RecentStocks() {
   const [activeStock, setActiveStock] = useState(POPULAR_STOCKS[0])
   const [timeSeriesData, setTimeSeriesData] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isMockData, setIsMockData] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
+      setError(null)
+      setIsMockData(false)
+      
       try {
+        console.log(`Fetching data for ${activeStock}...`)
         const data = await fetchStockTimeSeries(activeStock, "1D")
+        
+        // Check if this is mock data
+        setIsMockData(data.length > 0 && 'isMockData' in data[0] && data[0].isMockData === true)
+        
         setTimeSeriesData(data)
       } catch (error) {
         console.error("Failed to fetch time series data:", error)
         setTimeSeriesData([])
+        setError(error instanceof Error ? error.message : "Failed to fetch stock data")
       } finally {
         setIsLoading(false)
       }
@@ -36,6 +49,24 @@ export default function RecentStocks() {
         <CardTitle>Popular Stocks</CardTitle>
       </CardHeader>
       <CardContent>
+        {isMockData && (
+          <Alert variant="warning" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Showing simulated data. Connect API keys for real-time market data.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <Tabs defaultValue={POPULAR_STOCKS[0]} value={activeStock} onValueChange={setActiveStock}>
           <TabsList className="mb-4">
             {POPULAR_STOCKS.map((symbol) => (

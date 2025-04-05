@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const endpoint = searchParams.get("endpoint")
   const symbol = searchParams.get("symbol")
-  const timeframe = searchParams.get("timeframe")
+  const timeframe = searchParams.get("timeframe") as "1D" | "1W" | "1M" | "3M" | "1Y" | "5Y" | null
 
   if (!endpoint) {
     return NextResponse.json({ error: "Endpoint parameter is required" }, { status: 400 })
@@ -20,7 +20,13 @@ export async function GET(request: Request) {
         if (!symbol) {
           return NextResponse.json({ error: "Symbol parameter is required" }, { status: 400 })
         }
-        data = await marketData.getStockQuote(symbol)
+        // We'll use getStockOverview which now contains quote information
+        const stockData = await marketData.getStockOverview(symbol)
+        data = stockData ? {
+          price: stockData.price,
+          change: stockData.change,
+          changePercent: stockData.changePercent
+        } : null
         break
 
       case "overview":
